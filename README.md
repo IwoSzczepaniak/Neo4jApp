@@ -77,10 +77,55 @@ uvicorn main:app --reload
 - POST `/api/people` - Add new person
 - DELETE `/api/people/{fullname}` - Remove person and their relations
 - GET `/api/people` - List all people
+- GET `/api/people/{fullname}/relations` - Get all relations for a specific person
 
 ### Relations
 - POST `/api/relations` - Add relation between people (automatically adds reverse relation)
-- DELETE `/api/relations` - Remove relation between people (automatically removes reverse relation)
+- DELETE `/api/relations` - Remove relation between people
+- GET `/api/relations` - List all relations in the family tree
+- GET `/api/relations/{person1}/{person2}` - Get the direct relation between two people
+
+## Example Responses
+
+### Get Person's Relations
+```json
+{
+    "person": "John Smith",
+    "relations": {
+        "CHILD": ["Mary Smith", "Peter Smith"],
+        "SPOUSE": ["Jane Smith"],
+        "SIBLING": ["Tom Smith"],
+        "GRANDCHILD": ["Lucy Jones"]
+    }
+}
+```
+
+### Get All Relations
+```json
+{
+    "relations": [
+        {
+            "person1": "Alice Smith",
+            "relation_type": "MOTHER",
+            "person2": "Bob Smith"
+        },
+        {
+            "person1": "Bob Smith",
+            "relation_type": "CHILD",
+            "person2": "Alice Smith"
+        }
+    ]
+}
+```
+
+### Get Relation Between Two People
+```json
+{
+    "person1": "John Smith",
+    "person2": "Mary Smith",
+    "relation": "PARENT"
+}
+```
 
 ## Supported Relations
 All relations are automatically bi-directional. When you create one relation, its reverse is automatically created.
