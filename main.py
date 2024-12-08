@@ -149,6 +149,38 @@ def list_relations():
         ]
         return {"relations": relations}
 
+@app.get("/api/people/{fullname}/relations")
+def get_person_relations(fullname: str):
+    with db.driver.session() as session:
+        result = session.run(
+            """
+            MATCH (p:Person {fullname: $fullname})-[r:RELATED]->(related:Person)
+            RETURN related.fullname as related_person, r.type as relation_type
+            UNION
+            MATCH (related:Person)-[r:RELATED]->(p:Person {fullname: $fullname})
+            RETURN related.fullname as related_person, r.type as relation_type
+            ORDER BY relation_type, related_person
+            """,
+            fullname=fullname
+        )
+        
+        relations = {}
+        for record in result:
+            relation_type = record["relation_type"]
+            related_person = record["related_person"]
+            
+            if relation_type not in relations:
+                relations[relation_type] = []
+            relations[relation_type].append(related_person)
+            
+        if not relations:
+            raise HTTPException(status_code=404, detail=f"No relations found for person: {fullname}")
+            
+        return {
+            "person": fullname,
+            "relations": relations
+        }
+
 @app.on_event("shutdown")
 def shutdown_event():
     db.close() 
