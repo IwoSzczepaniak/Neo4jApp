@@ -1,6 +1,84 @@
-# Family Tree Manager
+# FamilyTreeNeo4j
 
-A full-stack application for managing family trees with a React frontend and FastAPI backend.
+A full-stack family tree management application built with Neo4j, FastAPI, and React. Visualize and manage family relationships with an intuitive graph database backend.
+
+```mermaid
+classDiagram
+    %% Frontend Components
+    class App {
+        -value: int
+        +handleChange(event, newValue)
+        +render()
+    }
+
+    class PeopleManager {
+        +render()
+    }
+
+    class RelationsManager {
+        +render()
+    }
+
+    class RelationFinder {
+        +render()
+    }
+
+    class FamilyTree {
+        +render()
+    }
+
+    %% Backend API
+    class FastAPIBackend {
+        +add_person(Person)
+        +remove_person(fullname)
+        +add_relation(Relation)
+        +remove_relation(Relation)
+        +get_all_people()
+        +list_relations()
+        +get_person_relations(fullname)
+        +get_relation_between_people(person1, person2)
+    }
+
+    %% Data Models
+    class DatabaseConnection {
+        -driver: Neo4jDriver
+        +close()
+    }
+
+    %% Frontend Component Relationships
+    App *-- PeopleManager
+    App *-- RelationsManager
+    App *-- RelationFinder
+    App *-- FamilyTree
+
+    %% Backend Relationships
+    FastAPIBackend --> DatabaseConnection : uses
+
+    %% Frontend-Backend Communication
+    PeopleManager ..> FastAPIBackend : HTTP /api/people
+    RelationsManager ..> FastAPIBackend : HTTP /api/relations
+    RelationFinder ..> FastAPIBackend : HTTP /api/relations/{person1}/{person2}
+    FamilyTree ..> FastAPIBackend : HTTP /api/people, /api/relations
+
+    %% Database
+    DatabaseConnection --> Neo4j : connects to
+
+    class Neo4j {
+        <<external>>
+    }
+```
+
+## Tech Stack
+- **Frontend:** React with Material-UI
+- **Backend:** FastAPI (Python)
+- **Database:** Neo4j (Graph Database)
+- **Containerization:** Docker
+
+## Features
+- 👨‍👩‍👧‍👦 Create and manage family members
+- 🔗 Define relationships between family members
+- 🔄 Automatic bidirectional relationships
+- 🐳 Easy deployment with Docker
 
 # Docker Setup (Recommended)
 
