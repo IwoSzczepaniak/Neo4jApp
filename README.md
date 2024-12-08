@@ -1,7 +1,8 @@
-# Family Tree API
+# Family Tree Manager
 
-A FastAPI-based backend application for managing family trees using Neo4j as the database.
+A full-stack application for managing family trees with a React frontend and FastAPI backend.
 
+# Backend
 ## Requirements
 - Python 3.8+
 - Neo4j Database
@@ -176,3 +177,114 @@ When you create any relation, the reverse relation is automatically created. For
 - If A is a "parent" of B, B automatically becomes a "child" of A
 - If A is an "aunt_uncle" of B, B automatically becomes a "niece_nephew" of A
 - If A is a "cousin" of B, B automatically becomes a "cousin" of A
+
+
+# Frontend
+
+## Requirements
+- Node.js 14+
+- npm 
+- React 18+
+
+## Setup Guide
+
+### 1. Install Dependencies
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies using npm
+npm install
+```
+
+### 2. Start React Server
+```bash
+# Using npm
+npm start
+
+# Or using yarn
+yarn start
+```
+
+The application will be available at http://localhost:3000
+
+## Features
+
+### Family Tree Visualization
+- Interactive family tree diagram
+- Zoom and pan controls
+- Click nodes to view detailed information
+
+### Person Management
+- Add new family members
+- Edit existing member details
+- Remove family members
+- View person's complete relation network
+
+### Relation Management
+- Create new relations between family members
+- View existing relations
+- Remove relations
+- Automatic bidirectional relation handling
+
+## Component Structure
+
+```
+src/
+├── components/
+│   ├── FamilyTree/        # Main tree visualization
+│   ├── PersonForm/        # Add/Edit person forms
+│   ├── RelationForm/      # Manage relations
+│   ├── PersonDetails/     # Person information display
+│   └── Navigation/        # App navigation
+├── services/
+│   ├── api.js            # API communication
+│   └── treeLayout.js     # Tree visualization logic
+└── utils/
+    └── relationTypes.js   # Relation type constants
+```
+
+## Usage Examples
+
+### Adding a New Person
+```javascript
+const person = {
+  fullname: "John Smith",
+  birthDate: "1980-01-01",
+  gender: "male"
+};
+
+await api.addPerson(person);
+```
+
+### Creating a Relation
+```javascript
+const relation = {
+  person1_name: "John Smith",
+  person2_name: "Jane Smith",
+  relation_type: "spouse"
+};
+
+await api.createRelation(relation);
+```
+
+### Visualizing Relations
+```javascript
+// Example of accessing a person's complete relation network
+const relations = await api.getPersonRelations("John Smith");
+
+// Relations will include all connection types:
+{
+  "SPOUSE": ["Jane Smith"],
+  "CHILD": ["Tommy Smith", "Sarah Smith"],
+  "SIBLING": ["Michael Smith"],
+  // ... other relations
+}
+```
+
+## Styling
+The application uses a combination of:
+- CSS Modules for component-specific styles
+- Tailwind CSS for utility classes
+- Custom CSS variables for theming
+
