@@ -129,6 +129,26 @@ def get_all_people():
         result = session.run("MATCH (p:Person) RETURN p.fullname as fullname")
         return {"people": [record["fullname"] for record in result]}
 
+@app.get("/api/relations")
+def list_relations():
+    with db.driver.session() as session:
+        result = session.run(
+            """
+            MATCH (p1:Person)-[r:RELATED]->(p2:Person)
+            RETURN p1.fullname as person1, r.type as relation_type, p2.fullname as person2
+            ORDER BY p1.fullname, p2.fullname
+            """
+        )
+        relations = [
+            {
+                "person1": record["person1"],
+                "relation_type": record["relation_type"],
+                "person2": record["person2"]
+            }
+            for record in result
+        ]
+        return {"relations": relations}
+
 @app.on_event("shutdown")
 def shutdown_event():
     db.close() 
