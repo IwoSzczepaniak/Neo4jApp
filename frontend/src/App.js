@@ -10,6 +10,7 @@ import React, { useState } from 'react';
 import FamilyTree from './components/FamilyTree';
 import PeopleManager from './components/PeopleManager';
 import RelationsManager from './components/RelationsManager';
+import RelationFinder from './components/RelationFinder';
 
 function App() {
   const [value, setValue] = useState(0);
@@ -33,13 +34,15 @@ function App() {
           >
             <Tab label="People" />
             <Tab label="Relations" />
+            <Tab label="Find Relations" />
             <Tab label="Family Tree" />
           </Tabs>
         </Paper>
 
         {value === 0 && <PeopleManager />}
         {value === 1 && <RelationsManager />}
-        {value === 2 && <FamilyTree />}
+        {value === 2 && <RelationFinder />}
+        {value === 3 && <FamilyTree />}
       </Box>
     </Container>
   );

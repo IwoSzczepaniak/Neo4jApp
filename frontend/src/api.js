@@ -18,3 +18,16 @@ export const api = {
             data: { person1_name, person2_name, relation_type } 
         }),
 }; 
+
+export async function findRelation(person1, person2) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/relations/${person1}/${person2}`);
+        if (!response.ok) {
+            throw new Error('Failed to find relation');
+        }
+        return await response.text();
+    } catch (error) {
+        console.error('Error finding relation:', error);
+        throw error;
+    }
+} 
