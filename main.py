@@ -156,9 +156,6 @@ def get_person_relations(fullname: str):
             """
             MATCH (p:Person {fullname: $fullname})-[r:RELATED]->(related:Person)
             RETURN related.fullname as related_person, r.type as relation_type
-            UNION
-            MATCH (related:Person)-[r:RELATED]->(p:Person {fullname: $fullname})
-            RETURN related.fullname as related_person, r.type as relation_type
             ORDER BY relation_type, related_person
             """,
             fullname=fullname
@@ -188,15 +185,17 @@ def get_relation_between_people(person1: str, person2: str):
             """
             MATCH (p1:Person {fullname: $person1})-[r:RELATED]->(p2:Person {fullname: $person2})
             RETURN r.type as relation_type
-            LIMIT 1
+            UNION
+            MATCH (p2:Person {fullname: $person2})-[r:RELATED]->(p1:Person {fullname: $person1})
+            RETURN r.type as relation_type
             """,
             person1=person1,
             person2=person2
         )
         
-        relation = next((record["relation_type"] for record in result), None)
+        relations = [record["relation_type"] for record in result]
         
-        if not relation:
+        if not relations:
             raise HTTPException(
                 status_code=404, 
                 detail=f"No relation found between {person1} and {person2}"
@@ -205,7 +204,7 @@ def get_relation_between_people(person1: str, person2: str):
         return {
             "person1": person1,
             "person2": person2,
-            "relation": relation
+            "relations": relations
         }
 
 @app.on_event("shutdown")
