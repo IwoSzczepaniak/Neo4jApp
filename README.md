@@ -190,10 +190,12 @@ When you create any relation, the reverse relation is automatically created. For
 
 ### 1. Install Dependencies
 ```bash
-# Navigate to frontend directory
 cd frontend
 
-# Install dependencies using npm
+npm init -y
+
+npm install --legacy-peer-deps @emotion/react @emotion/styled @mui/icons-material @mui/material axios react react-dom react-scripts
+
 npm install
 ```
 
@@ -226,23 +228,6 @@ The application will be available at http://localhost:3000
 - View existing relations
 - Remove relations
 - Automatic bidirectional relation handling
-
-## Component Structure
-
-```
-src/
-├── components/
-│   ├── FamilyTree/        # Main tree visualization
-│   ├── PersonForm/        # Add/Edit person forms
-│   ├── RelationForm/      # Manage relations
-│   ├── PersonDetails/     # Person information display
-│   └── Navigation/        # App navigation
-├── services/
-│   ├── api.js            # API communication
-│   └── treeLayout.js     # Tree visualization logic
-└── utils/
-    └── relationTypes.js   # Relation type constants
-```
 
 ## Usage Examples
 

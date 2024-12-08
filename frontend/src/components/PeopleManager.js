@@ -1,30 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Paper,
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   TextField,
   Button,
   Box,
   Typography,
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { api } from '../api';
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { api } from "../api";
 
 function PeopleManager() {
   const [people, setPeople] = useState([]);
-  const [newPerson, setNewPerson] = useState('');
-  const [error, setError] = useState('');
+  const [newPerson, setNewPerson] = useState("");
+  const [error, setError] = useState("");
 
   const loadPeople = async () => {
     try {
       const response = await api.getAllPeople();
       setPeople(response.data.people);
     } catch (err) {
-      setError('Failed to load people');
+      setError("Failed to load people");
     }
   };
 
@@ -36,10 +35,10 @@ function PeopleManager() {
     e.preventDefault();
     try {
       await api.addPerson(newPerson);
-      setNewPerson('');
+      setNewPerson("");
       loadPeople();
     } catch (err) {
-      setError('Failed to add person');
+      setError("Failed to add person");
     }
   };
 
@@ -48,7 +47,7 @@ function PeopleManager() {
       await api.removePerson(fullname);
       loadPeople();
     } catch (err) {
-      setError('Failed to delete person');
+      setError("Failed to delete person");
     }
   };
 
@@ -56,7 +55,7 @@ function PeopleManager() {
     <Box>
       <Paper sx={{ p: 2, mb: 2 }}>
         <form onSubmit={handleAddPerson}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: "flex", gap: 2 }}>
             <TextField
               fullWidth
               label="Person's Full Name"
@@ -81,15 +80,13 @@ function PeopleManager() {
           {people.map((person) => (
             <ListItem key={person}>
               <ListItemText primary={person} />
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => handleDeletePerson(person)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </ListItemSecondaryAction>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => handleDeletePerson(person)}
+              >
+                <DeleteIcon />
+              </IconButton>
             </ListItem>
           ))}
         </List>
@@ -98,4 +95,4 @@ function PeopleManager() {
   );
 }
 
-export default PeopleManager; 
+export default PeopleManager;

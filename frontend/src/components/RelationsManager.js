@@ -1,47 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
-  Paper,
+  Box,
+  Button,
+  FormControl,
+  IconButton,
+  InputLabel,
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
-  IconButton,
-  TextField,
-  Button,
-  Box,
-  Typography,
   MenuItem,
+  Paper,
   Select,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { api } from '../api';
+  Typography,
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { api } from "../api";
 
 const RELATION_TYPES = [
-  'child',
-  'parent',
-  'spouse',
-  'sibling',
-  'grandparent',
-  'grandchild',
-  'great_grandparent',
-  'great_grandchild',
-  'aunt_uncle',
-  'niece_nephew',
-  'cousin',
-  'parent_in_law',
-  'child_in_law',
-  'sibling_in_law',
+  "child",
+  "parent",
+  "spouse",
+  "sibling",
+  "grandparent",
+  "grandchild",
+  "great_grandparent",
+  "great_grandchild",
+  "aunt_uncle",
+  "niece_nephew",
+  "cousin",
+  "parent_in_law",
+  "child_in_law",
+  "sibling_in_law",
 ];
 
 function RelationsManager() {
   const [relations, setRelations] = useState([]);
   const [people, setPeople] = useState([]);
-  const [person1, setPerson1] = useState('');
-  const [person2, setPerson2] = useState('');
-  const [relationType, setRelationType] = useState('');
-  const [error, setError] = useState('');
+  const [person1, setPerson1] = useState("");
+  const [person2, setPerson2] = useState("");
+  const [relationType, setRelationType] = useState("");
+  const [error, setError] = useState("");
 
   const loadData = async () => {
     try {
@@ -52,7 +50,7 @@ function RelationsManager() {
       setRelations(relationsRes.data.relations);
       setPeople(peopleRes.data.people);
     } catch (err) {
-      setError('Failed to load data');
+      setError("Failed to load data");
     }
   };
 
@@ -64,12 +62,12 @@ function RelationsManager() {
     e.preventDefault();
     try {
       await api.addRelation(person1, person2, relationType);
-      setPerson1('');
-      setPerson2('');
-      setRelationType('');
+      setPerson1("");
+      setPerson2("");
+      setRelationType("");
       loadData();
     } catch (err) {
-      setError('Failed to add relation');
+      setError("Failed to add relation");
     }
   };
 
@@ -82,7 +80,7 @@ function RelationsManager() {
       );
       loadData();
     } catch (err) {
-      setError('Failed to delete relation');
+      setError("Failed to delete relation");
     }
   };
 
@@ -90,7 +88,7 @@ function RelationsManager() {
     <Box>
       <Paper sx={{ p: 2, mb: 2 }}>
         <form onSubmit={handleAddRelation}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: "flex", gap: 2 }}>
             <FormControl fullWidth>
               <InputLabel>Person 1</InputLabel>
               <Select
@@ -115,7 +113,7 @@ function RelationsManager() {
               >
                 {RELATION_TYPES.map((type) => (
                   <MenuItem key={type} value={type}>
-                    {type.replace('_', ' ')}
+                    {type.replaceAll("_", " ")}
                   </MenuItem>
                 ))}
               </Select>
@@ -154,17 +152,15 @@ function RelationsManager() {
           {relations.map((relation, index) => (
             <ListItem key={index}>
               <ListItemText
-                primary={`${relation.person1} is ${relation.relation_type} of ${relation.person2}`}
+                primary={`${relation.person1} is ${relation.relation_type.replaceAll("_", " ")} of ${relation.person2}`}
               />
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => handleDeleteRelation(relation)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </ListItemSecondaryAction>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => handleDeleteRelation(relation)}
+              >
+                <DeleteIcon />
+              </IconButton>
             </ListItem>
           ))}
         </List>
@@ -173,4 +169,4 @@ function RelationsManager() {
   );
 }
 
-export default RelationsManager; 
+export default RelationsManager;

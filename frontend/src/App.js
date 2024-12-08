@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Paper,
-  Typography,
-  Box,
-  Tabs,
-  Tab,
+    Box,
+    Container,
+    Paper,
+    Tab,
+    Tabs,
+    Typography,
 } from '@mui/material';
+import React, { useState } from 'react';
+import FamilyTree from './components/FamilyTree';
 import PeopleManager from './components/PeopleManager';
 import RelationsManager from './components/RelationsManager';
-import FamilyTree from './components/FamilyTree';
 
 function App() {
   const [value, setValue] = useState(0);
