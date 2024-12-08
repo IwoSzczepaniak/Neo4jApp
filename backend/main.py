@@ -56,6 +56,8 @@ class Relation(BaseModel):
 
 @app.post("/api/people")
 def add_person(person: Person):
+    if person.fullname == "":
+        raise HTTPException(status_code=400, detail="Full name cannot be empty")
     with db.driver.session() as session:
         result = session.run(
             "MERGE (p:Person {fullname: $fullname}) "
@@ -156,6 +158,7 @@ def list_relations():
             }
             for record in result
         ]
+        print(relations)
         return {"relations": relations}
 
 @app.get("/api/people/{fullname}/relations")

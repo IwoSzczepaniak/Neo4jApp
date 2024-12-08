@@ -39,18 +39,16 @@ function RelationFinder() {
     };
 
     return (
-        <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-                Find Relation Between People
-            </Typography>
-            
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Paper sx={{ p: 2, mb: 2}}>
+        
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, width: '100%' }}>
                 <TextField
                     label="Person 1"
                     variant="outlined"
                     size="small"
                     value={person1}
                     onChange={(e) => setPerson1(e.target.value)}
+                    sx={{ width: '100%' }}
                 />
                 <TextField
                     label="Person 2"
@@ -58,11 +56,12 @@ function RelationFinder() {
                     size="small"
                     value={person2}
                     onChange={(e) => setPerson2(e.target.value)}
+                    sx={{ width: '100%' }}
                 />
                 <Button 
                     variant="contained" 
                     onClick={handleFind}
-                    sx={{ minWidth: '120px' }}
+                    sx={{ minWidth: '200px' }}
                 >
                     Find Relation
                 </Button>

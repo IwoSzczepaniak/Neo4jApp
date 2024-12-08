@@ -134,7 +134,11 @@ function RelationsManager() {
               </Select>
             </FormControl>
 
-            <Button type="submit" variant="contained">
+            <Button 
+              type="submit" 
+              variant="contained"
+              sx={{ minWidth: '200px' }}
+            >
               Add Relation
             </Button>
           </Box>

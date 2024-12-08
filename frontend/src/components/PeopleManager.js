@@ -62,7 +62,7 @@ function PeopleManager() {
               value={newPerson}
               onChange={(e) => setNewPerson(e.target.value)}
             />
-            <Button type="submit" variant="contained">
+            <Button type="submit" variant="contained" sx={{ minWidth: '200px' }}>
               Add Person
             </Button>
           </Box>
