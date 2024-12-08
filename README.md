@@ -2,6 +2,33 @@
 
 A full-stack application for managing family trees with a React frontend and FastAPI backend.
 
+# Docker Setup (Recommended)
+
+The easiest way to run the application is using Docker Compose:
+
+```bash
+# Copy the environment template
+cp .env.example .env
+
+# Edit the .env file using your preferred editor (e.g. vim)
+vim .env
+
+# Build and start all services
+docker-compose up --build
+
+# To stop all services
+docker-compose down
+```
+
+After starting the services:
+- Frontend: http://localhost:3000
+- Backend API & Docs: http://localhost:8000/docs
+- Neo4j Browser: http://localhost:7474
+
+# Manual Setup
+
+If you prefer to run the services individually, follow these instructions:
+
 # Backend
 ## Requirements
 - Python 3.8+
