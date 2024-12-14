@@ -55,7 +55,6 @@ function PeopleManager() {
     try {
       const personData = {
         ...newPerson,
-        birth_date: newPerson.birth_date || null,
         death_date: newPerson.death_date || null,
         gender: newPerson.gender || null
       };
@@ -70,7 +69,7 @@ function PeopleManager() {
       setError("");
       loadPeople();
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.detail) {
+      if (err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else {
         setError("Failed to add person");
@@ -123,6 +122,7 @@ function PeopleManager() {
               sx={{ minWidth: "300px" }}
             />
             <TextField
+              required
               label="Birth date"
               type="date"
               value={newPerson.birth_date}

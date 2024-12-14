@@ -51,22 +51,15 @@ db = DatabaseConnection()
 class Person(BaseModel):
     id: Optional[int] = None
     name: str
-    birth_date: Optional[str] = None
+    birth_date: str
     death_date: Optional[str] = None
     gender: Optional[str] = None
 
-    @field_validator('birth_date', 'death_date')
-    @classmethod
-    def validate_date(cls, v):
-        if not v:
-            return None
-        return v
-
     @field_validator('birth_date')
     @classmethod
-    def birth_date_not_in_future(cls, v):
+    def validate_birth_date(cls, v):
         if not v:
-            return None
+            raise HTTPException(status_code=400, detail="Birth date is required")
         birth_date = datetime.strptime(v, '%Y-%m-%d').date()
         if birth_date > date.today():
             raise HTTPException(status_code=400, detail="Birth date cannot be in the future")
