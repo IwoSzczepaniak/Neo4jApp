@@ -5,7 +5,12 @@ const API_BASE_URL = 'http://localhost:8000/api';
 export const api = {
     // People endpoints
     getAllPeople: () => axios.get(`${API_BASE_URL}/people`),
-    addPerson: (fullname) => axios.post(`${API_BASE_URL}/people`, { fullname }),
+    addPerson: (personData) => axios.post(`${API_BASE_URL}/people`, {
+        name: personData.name,
+        birth_date: personData.birth_date || null,
+        death_date: personData.death_date || null,
+        gender: personData.gender || null
+    }),
     removePerson: (fullname) => axios.delete(`${API_BASE_URL}/people/${fullname}`),
     getPersonRelations: (fullname) => axios.get(`${API_BASE_URL}/people/${fullname}/relations`),
 

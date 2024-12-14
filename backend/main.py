@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from neo4j import GraphDatabase
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import os
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
+from datetime import date, datetime
 
 load_dotenv()
 
@@ -47,7 +49,45 @@ class DatabaseConnection:
 db = DatabaseConnection()
 
 class Person(BaseModel):
-    fullname: str
+    id: Optional[int] = None
+    name: str
+    birth_date: Optional[str] = None
+    death_date: Optional[str] = None
+    gender: Optional[str] = None
+
+    @field_validator('birth_date', 'death_date')
+    @classmethod
+    def validate_date(cls, v):
+        if not v:
+            return None
+        return v
+
+    @field_validator('birth_date')
+    @classmethod
+    def birth_date_not_in_future(cls, v):
+        if not v:
+            return None
+        birth_date = datetime.strptime(v, '%Y-%m-%d').date()
+        if birth_date > date.today():
+            raise HTTPException(status_code=400, detail="Data urodzenia nie może być w przyszłości")
+        return v
+
+    @field_validator('death_date')
+    @classmethod
+    def death_date_valid(cls, v, info):
+        if not v:
+            return None
+        death_date = datetime.strptime(v, '%Y-%m-%d').date()
+        
+        if death_date > date.today():
+            raise HTTPException(status_code=400, detail="Data śmierci nie może być w przyszłości")
+        
+        if 'birth_date' in info.data and info.data['birth_date']:
+            birth_date = datetime.strptime(info.data['birth_date'], '%Y-%m-%d').date()
+            if death_date < birth_date:
+                raise HTTPException(status_code=400, detail="Data śmierci nie może być wcześniejsza niż data urodzenia")
+        
+        return v
 
 class Relation(BaseModel):
     person1_name: str
@@ -56,16 +96,24 @@ class Relation(BaseModel):
 
 @app.post("/api/people")
 def add_person(person: Person):
-    if person.fullname == "":
+    if person.name == "":
         raise HTTPException(status_code=400, detail="Full name cannot be empty")
     with db.driver.session() as session:
         result = session.run(
-            "MERGE (p:Person {fullname: $fullname}) "
-            "RETURN p",
-            fullname=person.fullname
+            """
+            MERGE (p:Person {fullname: $fullname}) 
+            SET p.birth_date = $birth_date,
+                p.death_date = $death_date,
+                p.gender = $gender
+            RETURN p
+            """,
+            fullname=person.name,
+            birth_date=person.birth_date,
+            death_date=person.death_date,
+            gender=person.gender
         )
         if result.single():
-            return {"message": f"Person {person.fullname} added successfully"}
+            return {"message": f"Person {person.name} added successfully"}
         raise HTTPException(status_code=400, detail="Failed to add person")
 
 @app.delete("/api/people/{fullname}")
@@ -137,8 +185,25 @@ def remove_relation(relation: Relation):
 @app.get("/api/people")
 def get_all_people():
     with db.driver.session() as session:
-        result = session.run("MATCH (p:Person) RETURN p.fullname as fullname")
-        return {"people": [record["fullname"] for record in result]}
+        result = session.run(
+            """
+            MATCH (p:Person) 
+            RETURN p.fullname as fullname, 
+                   p.birth_date as birth_date,
+                   p.death_date as death_date,
+                   p.gender as gender
+            """
+        )
+        return {
+            "people": [
+                {
+                    "name": record["fullname"],
+                    "birth_date": record["birth_date"],
+                    "death_date": record["death_date"],
+                    "gender": record["gender"]
+                } for record in result
+            ]
+        }
 
 @app.get("/api/relations")
 def list_relations():
