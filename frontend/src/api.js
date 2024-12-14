@@ -11,7 +11,8 @@ export const api = {
         death_date: personData.death_date || null,
         gender: personData.gender || null
     }),
-    removePerson: (fullname) => axios.delete(`${API_BASE_URL}/people/${fullname}`),
+    removePerson: (name, birthDate) => 
+        axios.delete(`${API_BASE_URL}/people/${encodeURIComponent(name)}/${encodeURIComponent(birthDate)}`),
     getPersonRelations: (fullname) => axios.get(`${API_BASE_URL}/people/${fullname}/relations`),
 
     // Relations endpoints

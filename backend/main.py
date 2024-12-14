@@ -98,13 +98,33 @@ class Relation(BaseModel):
 def add_person(person: Person):
     if person.name == "":
         raise HTTPException(status_code=400, detail="Full name cannot be empty")
+    
     with db.driver.session() as session:
+        # Najpierw sprawdź czy istnieje osoba o tym samym imieniu i dacie urodzenia
+        check_result = session.run(
+            """
+            MATCH (p:Person {fullname: $fullname, birth_date: $birth_date})
+            RETURN p
+            """,
+            fullname=person.name,
+            birth_date=person.birth_date
+        )
+        
+        if check_result.single():
+            raise HTTPException(
+                status_code=400, 
+                detail="Osoba o tym imieniu i dacie urodzenia już istnieje"
+            )
+        
+        # Jeśli nie istnieje, dodaj nową osobę
         result = session.run(
             """
-            MERGE (p:Person {fullname: $fullname}) 
-            SET p.birth_date = $birth_date,
-                p.death_date = $death_date,
-                p.gender = $gender
+            CREATE (p:Person {
+                fullname: $fullname,
+                birth_date: $birth_date,
+                death_date: $death_date,
+                gender: $gender
+            })
             RETURN p
             """,
             fullname=person.name,
@@ -112,18 +132,22 @@ def add_person(person: Person):
             death_date=person.death_date,
             gender=person.gender
         )
+        
         if result.single():
             return {"message": f"Person {person.name} added successfully"}
         raise HTTPException(status_code=400, detail="Failed to add person")
 
-@app.delete("/api/people/{fullname}")
-def remove_person(fullname: str):
+@app.delete("/api/people/{fullname}/{birth_date}")
+def remove_person(fullname: str, birth_date: str):
     with db.driver.session() as session:
         result = session.run(
-            "MATCH (p:Person {fullname: $fullname}) "
-            "DETACH DELETE p "
-            "RETURN count(p) as count",
-            fullname=fullname
+            """
+            MATCH (p:Person {fullname: $fullname, birth_date: $birth_date})
+            DETACH DELETE p
+            RETURN count(p) as count
+            """,
+            fullname=fullname,
+            birth_date=birth_date
         )
         if result.single()["count"] > 0:
             return {"message": f"Person {fullname} and their relations removed successfully"}

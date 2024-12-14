@@ -57,6 +57,7 @@ function PeopleManager() {
         death_date: "",
         gender: "",
       });
+      setError("");
       loadPeople();
     } catch (err) {
       if (err.response && err.response.data && err.response.data.detail) {
@@ -68,9 +69,10 @@ function PeopleManager() {
     }
   };
 
-  const handleDeletePerson = async (fullname) => {
+  const handleDeletePerson = async (person) => {
     try {
-      await api.removePerson(fullname);
+      await api.removePerson(person.name, person.birth_date);
+      setError("");
       loadPeople();
     } catch (err) {
       setError("Failed to delete person");
@@ -167,7 +169,7 @@ function PeopleManager() {
                   <IconButton
                     edge="end"
                     aria-label="delete"
-                    onClick={() => handleDeletePerson(person.name)}
+                    onClick={() => handleDeletePerson(person)}
                   >
                     <DeleteIcon />
                   </IconButton>
