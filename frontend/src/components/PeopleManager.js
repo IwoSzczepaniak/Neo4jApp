@@ -1,4 +1,5 @@
 import DeleteIcon from "@mui/icons-material/Delete";
+import InfoIcon from "@mui/icons-material/Info";
 import {
   Box,
   Button,
@@ -12,7 +13,13 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { api } from "../api";
@@ -26,6 +33,9 @@ function PeopleManager() {
     gender: "",
   });
   const [error, setError] = useState("");
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [relations, setRelations] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
 
   const loadPeople = async () => {
     try {
@@ -76,6 +86,25 @@ function PeopleManager() {
       loadPeople();
     } catch (err) {
       setError("Failed to delete person");
+    }
+  };
+
+  const handleShowRelations = async (person) => {
+    try {
+      const response = await api.getPersonRelations(person.name);
+      setRelations(response.data.relations);
+      setSelectedPerson(person);
+      setOpenDialog(true);
+      setError("");
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setRelations({});
+        setSelectedPerson(person);
+        setOpenDialog(true);
+        setError("");
+      } else {
+        setError("Failed to load relations");
+      }
     }
   };
 
@@ -173,12 +202,44 @@ function PeopleManager() {
                   >
                     <DeleteIcon />
                   </IconButton>
+                  <IconButton
+                    edge="end"
+                    aria-label="show relations"
+                    onClick={() => handleShowRelations(person)}
+                  >
+                    <InfoIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>
+          Relacje: {selectedPerson?.name}
+          {selectedPerson?.birth_date && ` (ur. ${selectedPerson.birth_date})`}
+        </DialogTitle>
+        <DialogContent>
+          {Object.keys(relations).length > 0 ? (
+            <List>
+              {Object.entries(relations).map(([relationType, people]) => (
+                <React.Fragment key={relationType}>
+                  <ListItem>
+                    <ListItemText
+                      primary={relationType.replace('_', ' ')}
+                      secondary={people.join(', ')}
+                    />
+                  </ListItem>
+                </React.Fragment>
+              ))}
+            </List>
+          ) : (
+            <Typography>Brak relacji dla tej osoby</Typography>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

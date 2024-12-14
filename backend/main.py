@@ -159,12 +159,16 @@ def add_relation(relation: Relation):
         raise HTTPException(status_code=400, detail="Invalid relation type")
 
     reverse_relation = RELATION_MAPPING[relation.relation_type]
+
+    if relation.person1_name == relation.person2_name and relation.person1_birth_date == relation.person2_birth_date:
+        raise HTTPException(status_code=400, detail="You cannot add relation to yourself")
     
     with db.driver.session() as session:
         result = session.run(
             """
             MATCH (p1:Person {fullname: $person1_name})
             MATCH (p2:Person {fullname: $person2_name})
+            WHERE p1 <> p2
             MERGE (p1)-[r1:RELATED {type: $relation_type}]->(p2)
             MERGE (p2)-[r2:RELATED {type: $reverse_relation}]->(p1)
             RETURN r1, r2
@@ -256,7 +260,9 @@ def get_person_relations(fullname: str):
         result = session.run(
             """
             MATCH (p:Person {fullname: $fullname})-[r:RELATED]->(related:Person)
-            RETURN related.fullname as related_person, r.type as relation_type
+            RETURN related.fullname as related_person, 
+                   related.birth_date as birth_date,
+                   r.type as relation_type
             ORDER BY relation_type, related_person
             """,
             fullname=fullname
@@ -266,10 +272,15 @@ def get_person_relations(fullname: str):
         for record in result:
             relation_type = record["relation_type"]
             related_person = record["related_person"]
+            birth_date = record["birth_date"]
             
             if relation_type not in relations:
                 relations[relation_type] = []
-            relations[relation_type].append(related_person)
+            
+            person_info = related_person
+            if birth_date:
+                person_info += f" (ur. {birth_date})"
+            relations[relation_type].append(person_info)
             
         if not relations:
             raise HTTPException(status_code=404, detail=f"No relations found for person: {fullname}")

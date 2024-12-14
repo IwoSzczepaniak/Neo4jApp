@@ -5,13 +5,17 @@ import {
   FormControl,
   IconButton,
   InputLabel,
-  List,
-  ListItem,
-  ListItemText,
   MenuItem,
   Paper,
   Select,
-  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { api } from "../api";
@@ -34,29 +38,35 @@ const RELATION_TYPES = [
 ];
 
 function RelationsManager() {
-  const [relations, setRelations] = useState([]);
   const [people, setPeople] = useState([]);
   const [person1, setPerson1] = useState("");
   const [person2, setPerson2] = useState("");
   const [relationType, setRelationType] = useState("");
+  const [relations, setRelations] = useState([]);
   const [error, setError] = useState("");
 
-  const loadData = async () => {
+  useEffect(() => {
+    loadPeople();
+    loadRelations();
+  }, []);
+
+  const loadPeople = async () => {
     try {
-      const [relationsRes, peopleRes] = await Promise.all([
-        api.getAllRelations(),
-        api.getAllPeople(),
-      ]);
-      setRelations(relationsRes.data.relations);
-      setPeople(peopleRes.data.people);
+      const response = await api.getAllPeople();
+      setPeople(response.data.people);
     } catch (err) {
-      setError("Failed to load data");
+      setError("Failed to load people");
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const loadRelations = async () => {
+    try {
+      const response = await api.getAllRelations();
+      setRelations(response.data.relations);
+    } catch (err) {
+      setError("Failed to load relations");
+    }
+  };
 
   const handleAddRelation = async (e) => {
     e.preventDefault();
@@ -65,20 +75,20 @@ function RelationsManager() {
       setPerson1("");
       setPerson2("");
       setRelationType("");
-      loadData();
+      loadRelations();
     } catch (err) {
       setError("Failed to add relation");
     }
   };
 
-  const handleDeleteRelation = async (relation) => {
+  const handleRemoveRelation = async (relation) => {
     try {
       await api.removeRelation(
         relation.person1,
         relation.person2,
         relation.relation_type
       );
-      loadData();
+      loadRelations();
     } catch (err) {
       setError("Failed to delete relation");
     }
@@ -89,20 +99,33 @@ function RelationsManager() {
       <Paper sx={{ p: 2, mb: 2 }}>
         <form onSubmit={handleAddRelation}>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Person 1</InputLabel>
-              <Select
-                value={person1}
-                label="Person 1"
-                onChange={(e) => setPerson1(e.target.value)}
-              >
-                {people.map((person) => (
-                  <MenuItem key={person} value={person}>
-                    {person}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <TextField
+              select
+              label="Person 1"
+              value={person1}
+              onChange={(e) => setPerson1(e.target.value)}
+              sx={{ minWidth: 200 }}
+            >
+              {people.map((person) => (
+                <MenuItem key={`${person.name}-${person.birth_date}`} value={person.name}>
+                  {person.name} {person.birth_date ? `(ur. ${person.birth_date})` : ''}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="Person 2"
+              value={person2}
+              onChange={(e) => setPerson2(e.target.value)}
+              sx={{ minWidth: 200 }}
+            >
+              {people.map((person) => (
+                <MenuItem key={`${person.name}-${person.birth_date}`} value={person.name}>
+                  {person.name} {person.birth_date ? `(ur. ${person.birth_date})` : ''}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <FormControl fullWidth>
               <InputLabel>Relation Type</InputLabel>
@@ -114,21 +137,6 @@ function RelationsManager() {
                 {RELATION_TYPES.map((type) => (
                   <MenuItem key={type} value={type}>
                     {type.replaceAll("_", " ")}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Person 2</InputLabel>
-              <Select
-                value={person2}
-                label="Person 2"
-                onChange={(e) => setPerson2(e.target.value)}
-              >
-                {people.map((person) => (
-                  <MenuItem key={person} value={person}>
-                    {person}
                   </MenuItem>
                 ))}
               </Select>
@@ -151,24 +159,35 @@ function RelationsManager() {
         </Typography>
       )}
 
-      <Paper>
-        <List>
-          {relations.map((relation, index) => (
-            <ListItem key={index}>
-              <ListItemText
-                primary={`${relation.person1} is ${relation.relation_type.replaceAll("_", " ")} of ${relation.person2}`}
-              />
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => handleDeleteRelation(relation)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Person 1</TableCell>
+              <TableCell>Relation</TableCell>
+              <TableCell>Person 2</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {relations.map((relation, index) => (
+              <TableRow key={index}>
+                <TableCell>{relation.person1}</TableCell>
+                <TableCell>{relation.relation_type}</TableCell>
+                <TableCell>{relation.person2}</TableCell>
+                <TableCell>
+                  <IconButton
+                    onClick={() => handleRemoveRelation(relation)}
+                    color="error"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 }
