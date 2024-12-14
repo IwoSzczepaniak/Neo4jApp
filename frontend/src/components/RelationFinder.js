@@ -15,6 +15,8 @@ function RelationFinder() {
     const [people, setPeople] = useState([]);
     const [person1, setPerson1] = useState('');
     const [person2, setPerson2] = useState('');
+    const [selectedPerson1, setSelectedPerson1] = useState(null);
+    const [selectedPerson2, setSelectedPerson2] = useState(null);
     const [relation, setRelation] = useState(null);
     const [error, setError] = useState(null);
 
@@ -33,23 +35,38 @@ function RelationFinder() {
 
     const handleFind = async () => {
         try {
-            if (!person1 || !person2) {
+            if (!selectedPerson1 || !selectedPerson2) {
                 setError('Please select both people');
                 return;
             }
-            const result = await findRelation(person1, person2);
+            const result = await findRelation(
+                `${selectedPerson1.name}/${selectedPerson1.birth_date}`,
+                `${selectedPerson2.name}/${selectedPerson2.birth_date}`
+            );
             const parsedResult = typeof result === 'string' ? JSON.parse(result) : result;
             setRelation(parsedResult);
             setError(null);
         } catch (err) {
-            setError('Failed to find relation');
+            setError('No relation found');
             setRelation(null);
         }
     };
 
     const formatRelation = (relationData) => {
         if (!relationData || !relationData.relations) return null;
-        return relationData.relations[0].replaceAll("_", " ");
+        const relation = relationData.relations[0];
+        return {
+            type: relation.relation_type.replaceAll("_", " "),
+            person1_birth: relation.person1_birth,
+            person2_birth: relation.person2_birth
+        };
+    };
+
+    const getFilteredPeople = (currentPerson) => {
+        if (!currentPerson) return people;
+        return people.filter(person => 
+            `${person.name}-${person.birth_date}` !== `${currentPerson.name}-${currentPerson.birth_date}`
+        );
     };
 
     return (
@@ -59,13 +76,25 @@ function RelationFinder() {
                     select
                     label="Person 1"
                     value={person1}
-                    onChange={(e) => setPerson1(e.target.value)}
+                    onChange={(e) => {
+                        setPerson1(e.target.value);
+                        const selected = people.find(p => 
+                            `${p.name}-${p.birth_date}` === e.target.value
+                        );
+                        setSelectedPerson1(selected);
+                        if (selectedPerson2 && selected && 
+                            selected.name === selectedPerson2.name && 
+                            selected.birth_date === selectedPerson2.birth_date) {
+                            setPerson2('');
+                            setSelectedPerson2(null);
+                        }
+                    }}
                     sx={{ width: '100%' }}
                 >
                     {people.map((person) => (
                         <MenuItem
                             key={`${person.name}-${person.birth_date}`}
-                            value={person.name}
+                            value={`${person.name}-${person.birth_date}`}
                         >
                             {person.name}{" "}
                             {person.birth_date ? `(b. ${person.birth_date})` : ""}
@@ -77,13 +106,19 @@ function RelationFinder() {
                     select
                     label="Person 2"
                     value={person2}
-                    onChange={(e) => setPerson2(e.target.value)}
+                    onChange={(e) => {
+                        setPerson2(e.target.value);
+                        setSelectedPerson2(people.find(p => 
+                            `${p.name}-${p.birth_date}` === e.target.value
+                        ));
+                    }}
                     sx={{ width: '100%' }}
+                    disabled={!selectedPerson1}
                 >
-                    {people.map((person) => (
+                    {getFilteredPeople(selectedPerson1).map((person) => (
                         <MenuItem
                             key={`${person.name}-${person.birth_date}`}
-                            value={person.name}
+                            value={`${person.name}-${person.birth_date}`}
                         >
                             {person.name}{" "}
                             {person.birth_date ? `(b. ${person.birth_date})` : ""}
@@ -95,6 +130,7 @@ function RelationFinder() {
                     variant="contained" 
                     onClick={handleFind}
                     sx={{ minWidth: '200px', height: '56px' }}
+                    disabled={!selectedPerson1 || !selectedPerson2}
                 >
                     Find Relation
                 </Button>
@@ -113,7 +149,7 @@ function RelationFinder() {
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Chip 
-                            label={relation.person1} 
+                            label={`${relation.person1} (b. ${formatRelation(relation).person1_birth})`}
                             color="primary" 
                             variant="outlined"
                         />
@@ -121,14 +157,14 @@ function RelationFinder() {
                             is
                         </Typography>
                         <Chip 
-                            label={formatRelation(relation)} 
+                            label={formatRelation(relation).type}
                             color="secondary"
                         />
                         <Typography variant="body1" sx={{ mx: 1 }}>
                             of
                         </Typography>
                         <Chip 
-                            label={relation.person2} 
+                            label={`${relation.person2} (b. ${formatRelation(relation).person2_birth})`}
                             color="primary" 
                             variant="outlined"
                         />

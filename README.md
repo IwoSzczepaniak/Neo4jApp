@@ -75,8 +75,12 @@ classDiagram
 - **Containerization:** Docker
 
 ## Features
-- 👨‍👩‍👧‍👦 Create and manage family members
-- 🔗 Define relationships between family members
+- 👨‍👩‍👧‍👦 Create and manage family members with:
+  - Full name (required)
+  - Birth date (required, used for unique identification)
+  - Death date (optional)
+  - Gender (Male/Female - optional)
+- 🔗 Define relationships between uniquely identified people
 - 🔄 Automatic bidirectional relationships
 - 🐳 Easy deployment with Docker
 
@@ -186,58 +190,53 @@ uvicorn main:app --reload
 ## API Endpoints
 
 ### People
-- POST `/api/people` - Add new person
-- DELETE `/api/people/{fullname}` - Remove person and their relations
+- POST `/api/people` - Add new person (requires name and birth date)
+- DELETE `/api/people/{fullname}/{birth_date}` - Remove person and their relations
 - GET `/api/people` - List all people
-- GET `/api/people/{fullname}/relations` - Get all relations for a specific person
+- GET `/api/people/{fullname}/relations?birth_date={birth_date}` - Get all relations for a specific person
+
+### Example Person Object
+```json
+{
+    "name": "John Smith",
+    "birth_date": "1980-01-01",  // Required
+    "death_date": "2023-12-31",  // Optional
+    "gender": "M"                 // M = Male, K = Female
+}
+```
 
 ### Relations
 - POST `/api/relations` - Add relation between people (automatically adds reverse relation)
 - DELETE `/api/relations` - Remove relation between people
 - GET `/api/relations` - List all relations in the family tree
-- GET `/api/relations/{person1}/{person2}` - Get the direct relation between two people
+- GET `/api/relations/{person1}/{birth_date1}/{person2}/{birth_date2}` - Get the direct relation between two people
 
-## Example Responses
-
-### Get Person's Relations
-```json
-{
-    "person": "John Smith",
-    "relations": {
-        "CHILD": ["Mary Smith", "Peter Smith"],
-        "SPOUSE": ["Jane Smith"],
-        "SIBLING": ["Tom Smith"],
-        "GRANDCHILD": ["Lucy Jones"]
-    }
-}
-```
-
-### Get All Relations
+### Example Relation Response
 ```json
 {
     "relations": [
         {
-            "person1": "Alice Smith",
-            "relation_type": "MOTHER",
-            "person2": "Bob Smith"
-        },
-        {
-            "person1": "Bob Smith",
-            "relation_type": "CHILD",
-            "person2": "Alice Smith"
+            "person1": "John Smith",
+            "person1_birth_date": "1980-01-01",
+            "relation_type": "PARENT",
+            "person2": "Mary Smith",
+            "person2_birth_date": "2010-05-15"
         }
     ]
 }
 ```
 
-### Get Relation Between Two People
-```json
-{
-    "person1": "John Smith",
-    "person2": "Mary Smith",
-    "relation": "PARENT"
-}
-```
+## Person Identification
+The system uses a combination of full name and birth date to uniquely identify people. This allows:
+- Multiple people with the same name but different birth dates
+- Prevention of duplicate entries
+
+## Data Validation
+- Birth date cannot be in the future
+- Death date (if provided) must be after birth date
+- Cannot create relations between the same person
+- Cannot create duplicate relations
+- Cannot add new relation between people who are already related
 
 ## Supported Relations
 All relations are automatically bi-directional. When you create one relation, its reverse is automatically created.
@@ -329,16 +328,16 @@ The application will be available at http://localhost:3000
 - Click nodes to view detailed information
 
 ### Person Management
-- Add new family members
-- Edit existing member details
+- Add new family members with required birth dates
+- View person details including birth/death dates and gender
 - Remove family members
 - View person's complete relation network
 
 ### Relation Management
-- Create new relations between family members
-- View existing relations
+- Create new relations between family members 
+- View existing relations 
 - Remove relations
-- Automatic bidirectional relation handling
+- Find relations between any two family members
 
 ## Usage Examples
 

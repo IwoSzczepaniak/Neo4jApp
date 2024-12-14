@@ -90,7 +90,7 @@ function PeopleManager() {
 
   const handleShowRelations = async (person) => {
     try {
-      const response = await api.getPersonRelations(person.name);
+      const response = await api.getPersonRelations(person.name, person.birth_date);
       setRelations(response.data.relations);
       setSelectedPerson(person);
       setOpenDialog(true);
@@ -158,6 +158,7 @@ function PeopleManager() {
               type="submit"
               variant="contained"
               sx={{ minWidth: "200px" }}
+              disabled={!newPerson.name || !newPerson.birth_date}
             >
               Add Person
             </Button>

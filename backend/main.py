@@ -84,7 +84,9 @@ class Person(BaseModel):
 
 class Relation(BaseModel):
     person1_name: str
+    person1_birth_date: str
     person2_name: str
+    person2_birth_date: str
     relation_type: str
 
 @app.post("/api/people")
@@ -152,22 +154,42 @@ def add_relation(relation: Relation):
         raise HTTPException(status_code=400, detail="Invalid relation type")
 
     reverse_relation = RELATION_MAPPING[relation.relation_type]
-
-    if relation.person1_name == relation.person2_name and relation.person1_birth_date == relation.person2_birth_date:
-        raise HTTPException(status_code=400, detail="You cannot add relation to yourself")
     
     with db.driver.session() as session:
+        # First check if relation already exists
+        check_result = session.run(
+            """
+            MATCH (p1:Person {fullname: $person1_name, birth_date: $person1_birth_date})
+            -[r:RELATED]->
+            (p2:Person {fullname: $person2_name, birth_date: $person2_birth_date})
+            RETURN r
+            """,
+            person1_name=relation.person1_name,
+            person1_birth_date=relation.person1_birth_date,
+            person2_name=relation.person2_name,
+            person2_birth_date=relation.person2_birth_date
+        )
+        
+        if check_result.single():
+            raise HTTPException(
+                status_code=400, 
+                detail="These people are already in a relation"
+            )
+
+        # If no relation exists, create new one
         result = session.run(
             """
-            MATCH (p1:Person {fullname: $person1_name})
-            MATCH (p2:Person {fullname: $person2_name})
+            MATCH (p1:Person {fullname: $person1_name, birth_date: $person1_birth_date})
+            MATCH (p2:Person {fullname: $person2_name, birth_date: $person2_birth_date})
             WHERE p1 <> p2
             MERGE (p1)-[r1:RELATED {type: $relation_type}]->(p2)
             MERGE (p2)-[r2:RELATED {type: $reverse_relation}]->(p1)
             RETURN r1, r2
             """,
             person1_name=relation.person1_name,
+            person1_birth_date=relation.person1_birth_date,
             person2_name=relation.person2_name,
+            person2_birth_date=relation.person2_birth_date,
             relation_type=relation.relation_type,
             reverse_relation=reverse_relation
         )
@@ -185,9 +207,9 @@ def remove_relation(relation: Relation):
     with db.driver.session() as session:
         result = session.run(
             """
-            MATCH (p1:Person {fullname: $person1_name})
+            MATCH (p1:Person {fullname: $person1_name, birth_date: $person1_birth_date})
             -[r1:RELATED {type: $relation_type}]->
-            (p2:Person {fullname: $person2_name})
+            (p2:Person {fullname: $person2_name, birth_date: $person2_birth_date})
             MATCH (p2)
             -[r2:RELATED {type: $reverse_relation}]->
             (p1)
@@ -195,7 +217,9 @@ def remove_relation(relation: Relation):
             RETURN count(r1) as count
             """,
             person1_name=relation.person1_name,
+            person1_birth_date=relation.person1_birth_date,
             person2_name=relation.person2_name,
+            person2_birth_date=relation.person2_birth_date,
             relation_type=relation.relation_type,
             reverse_relation=reverse_relation
         )
@@ -232,33 +256,39 @@ def list_relations():
         result = session.run(
             """
             MATCH (p1:Person)-[r:RELATED]->(p2:Person)
-            RETURN p1.fullname as person1, r.type as relation_type, p2.fullname as person2
+            RETURN p1.fullname as person1, 
+                   p1.birth_date as person1_birth_date,
+                   r.type as relation_type, 
+                   p2.fullname as person2,
+                   p2.birth_date as person2_birth_date
             ORDER BY p1.fullname, p2.fullname
             """
         )
         relations = [
             {
                 "person1": record["person1"],
+                "person1_birth_date": record["person1_birth_date"],
                 "relation_type": record["relation_type"],
-                "person2": record["person2"]
+                "person2": record["person2"],
+                "person2_birth_date": record["person2_birth_date"]
             }
             for record in result
         ]
-        print(relations)
         return {"relations": relations}
 
 @app.get("/api/people/{fullname}/relations")
-def get_person_relations(fullname: str):
+def get_person_relations(fullname: str, birth_date: str):
     with db.driver.session() as session:
         result = session.run(
             """
-            MATCH (p:Person {fullname: $fullname})-[r:RELATED]->(related:Person)
+            MATCH (p:Person {fullname: $fullname, birth_date: $birth_date})-[r:RELATED]->(related:Person)
             RETURN related.fullname as related_person, 
                    related.birth_date as birth_date,
                    r.type as relation_type
             ORDER BY relation_type, related_person
             """,
-            fullname=fullname
+            fullname=fullname,
+            birth_date=birth_date
         )
         
         relations = {}
@@ -272,7 +302,7 @@ def get_person_relations(fullname: str):
             
             person_info = related_person
             if birth_date:
-                person_info += f" (ur. {birth_date})"
+                person_info += f" (b. {birth_date})"
             relations[relation_type].append(person_info)
             
         if not relations:
@@ -283,27 +313,39 @@ def get_person_relations(fullname: str):
             "relations": relations
         }
 
-@app.get("/api/relations/{person1}/{person2}")
-def get_relation_between_people(person1: str, person2: str):
+@app.get("/api/relations/{person1}/{birth_date1}/{person2}/{birth_date2}")
+def get_relation_between_people(person1: str, birth_date1: str, person2: str, birth_date2: str):
     with db.driver.session() as session:
         result = session.run(
             """
-            MATCH (p1:Person {fullname: $person1})-[r:RELATED]->(p2:Person {fullname: $person2})
-            RETURN r.type as relation_type
+            MATCH (p1:Person {fullname: $person1, birth_date: $birth_date1})
+            -[r:RELATED]->(p2:Person {fullname: $person2, birth_date: $birth_date2})
+            RETURN r.type as relation_type, 
+                   p1.birth_date as p1_birth_date,
+                   p2.birth_date as p2_birth_date
             UNION
-            MATCH (p2:Person {fullname: $person2})-[r:RELATED]->(p1:Person {fullname: $person1})
-            RETURN r.type as relation_type
+            MATCH (p2:Person {fullname: $person2, birth_date: $birth_date2})
+            -[r:RELATED]->(p1:Person {fullname: $person1, birth_date: $birth_date1})
+            RETURN r.type as relation_type,
+                   p2.birth_date as p1_birth_date,
+                   p1.birth_date as p2_birth_date
             """,
             person1=person1,
-            person2=person2
+            birth_date1=birth_date1,
+            person2=person2,
+            birth_date2=birth_date2
         )
         
-        relations = [record["relation_type"] for record in result]
+        relations = [{
+            "relation_type": record["relation_type"],
+            "person1_birth": record["p1_birth_date"],
+            "person2_birth": record["p2_birth_date"]
+        } for record in result]
         
         if not relations:
             raise HTTPException(
                 status_code=404, 
-                detail=f"No relation found between {person1} and {person2}"
+                detail=f"No relation found between {person1} (b. {birth_date1}) and {person2} (b. {birth_date2})"
             )
             
         return {

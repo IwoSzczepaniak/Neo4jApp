@@ -15,7 +15,7 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography,
+  Alert
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { api } from "../api";
@@ -71,13 +71,36 @@ function RelationsManager() {
   const handleAddRelation = async (e) => {
     e.preventDefault();
     try {
-      await api.addRelation(person1, person2, relationType);
+      const person1Data = people.find(p => 
+        `${p.name}-${p.birth_date}` === person1
+      );
+      const person2Data = people.find(p => 
+        `${p.name}-${p.birth_date}` === person2
+      );
+      
+      if (!person1Data || !person2Data) {
+        setError("Please select both people");
+        return;
+      }
+
+      await api.addRelation(
+        person1Data.name,
+        person1Data.birth_date,
+        person2Data.name,
+        person2Data.birth_date,
+        relationType
+      );
       setPerson1("");
       setPerson2("");
       setRelationType("");
+      setError("");
       loadRelations();
     } catch (err) {
-      setError("Failed to add relation");
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError("Failed to add relation");
+      }
     }
   };
 
@@ -85,7 +108,9 @@ function RelationsManager() {
     try {
       await api.removeRelation(
         relation.person1,
+        relation.person1_birth_date,
         relation.person2,
+        relation.person2_birth_date,
         relation.relation_type
       );
       loadRelations();
@@ -103,13 +128,18 @@ function RelationsManager() {
               select
               label="Person 1"
               value={person1}
-              onChange={(e) => setPerson1(e.target.value)}
-              sx={{ minWidth: 200 }}
+              onChange={(e) => {
+                setPerson1(e.target.value);
+                if (e.target.value === person2) {
+                  setPerson2("");
+                }
+              }}
+              sx={{ minWidth: 340 }}
             >
               {people.map((person) => (
                 <MenuItem
                   key={`${person.name}-${person.birth_date}`}
-                  value={person.name}
+                  value={`${person.name}-${person.birth_date}`}
                 >
                   {person.name}{" "}
                   {person.birth_date ? `(b. ${person.birth_date})` : ""}
@@ -122,17 +152,20 @@ function RelationsManager() {
               label="Person 2"
               value={person2}
               onChange={(e) => setPerson2(e.target.value)}
-              sx={{ minWidth: 200 }}
+              sx={{ minWidth: 340 }}
+              disabled={!person1}
             >
-              {people.map((person) => (
-                <MenuItem
-                  key={`${person.name}-${person.birth_date}`}
-                  value={person.name}
-                >
-                  {person.name}{" "}
-                  {person.birth_date ? `(b. ${person.birth_date})` : ""}
-                </MenuItem>
-              ))}
+              {people
+                .filter(p => `${p.name}-${p.birth_date}` !== person1)
+                .map((person) => (
+                  <MenuItem
+                    key={`${person.name}-${person.birth_date}`}
+                    value={`${person.name}-${person.birth_date}`}
+                  >
+                    {person.name}{" "}
+                    {person.birth_date ? `(b. ${person.birth_date})` : ""}
+                  </MenuItem>
+                ))}
             </TextField>
 
             <FormControl fullWidth>
@@ -141,6 +174,7 @@ function RelationsManager() {
                 value={relationType}
                 label="Relation Type"
                 onChange={(e) => setRelationType(e.target.value)}
+                disabled={!person1 || !person2}
               >
                 {RELATION_TYPES.map((type) => (
                   <MenuItem key={type} value={type}>
@@ -154,6 +188,7 @@ function RelationsManager() {
               type="submit"
               variant="contained"
               sx={{ minWidth: "200px" }}
+              disabled={!person1 || !person2 || !relationType}
             >
               Add Relation
             </Button>
@@ -162,9 +197,9 @@ function RelationsManager() {
       </Paper>
 
       {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
-        </Typography>
+        </Alert>
       )}
 
       <TableContainer component={Paper}>
@@ -172,8 +207,10 @@ function RelationsManager() {
           <TableHead>
             <TableRow>
               <TableCell>Person 1</TableCell>
+              <TableCell>Birth Date</TableCell>
               <TableCell>Relation</TableCell>
               <TableCell>Person 2</TableCell>
+              <TableCell>Birth Date</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -181,8 +218,10 @@ function RelationsManager() {
             {relations.map((relation, index) => (
               <TableRow key={index}>
                 <TableCell>{relation.person1}</TableCell>
-                <TableCell>{relation.relation_type}</TableCell>
+                <TableCell>{relation.person1_birth_date || '-'}</TableCell>
+                <TableCell>{relation.relation_type.replaceAll('_', ' ')}</TableCell>
                 <TableCell>{relation.person2}</TableCell>
+                <TableCell>{relation.person2_birth_date || '-'}</TableCell>
                 <TableCell>
                   <IconButton
                     onClick={() => handleRemoveRelation(relation)}
