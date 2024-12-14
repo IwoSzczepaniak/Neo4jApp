@@ -133,6 +133,12 @@ docker run \
     neo4j:latest
 ```
 
+To clear db:
+```CYPHER
+MATCH (n)
+DETACH DELETE n;
+```
+
 ### 2. Install Python Dependencies
 ```bash
 # Create a virtual environment
