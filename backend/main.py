@@ -69,7 +69,7 @@ class Person(BaseModel):
             return None
         birth_date = datetime.strptime(v, '%Y-%m-%d').date()
         if birth_date > date.today():
-            raise HTTPException(status_code=400, detail="Data urodzenia nie może być w przyszłości")
+            raise HTTPException(status_code=400, detail="Birth date cannot be in the future")
         return v
 
     @field_validator('death_date')
@@ -80,12 +80,12 @@ class Person(BaseModel):
         death_date = datetime.strptime(v, '%Y-%m-%d').date()
         
         if death_date > date.today():
-            raise HTTPException(status_code=400, detail="Data śmierci nie może być w przyszłości")
+            raise HTTPException(status_code=400, detail="Death date cannot be in the future")
         
         if 'birth_date' in info.data and info.data['birth_date']:
             birth_date = datetime.strptime(info.data['birth_date'], '%Y-%m-%d').date()
             if death_date < birth_date:
-                raise HTTPException(status_code=400, detail="Data śmierci nie może być wcześniejsza niż data urodzenia")
+                raise HTTPException(status_code=400, detail="Death date cannot be earlier than birth date")
         
         return v
 
@@ -113,7 +113,7 @@ def add_person(person: Person):
         if check_result.single():
             raise HTTPException(
                 status_code=400, 
-                detail="Osoba o tym imieniu i dacie urodzenia już istnieje"
+                detail="Person with this name and birth date already exists"
             )
         
         # Jeśli nie istnieje, dodaj nową osobę

@@ -15,7 +15,7 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { api } from "../api";
@@ -107,8 +107,12 @@ function RelationsManager() {
               sx={{ minWidth: 200 }}
             >
               {people.map((person) => (
-                <MenuItem key={`${person.name}-${person.birth_date}`} value={person.name}>
-                  {person.name} {person.birth_date ? `(ur. ${person.birth_date})` : ''}
+                <MenuItem
+                  key={`${person.name}-${person.birth_date}`}
+                  value={person.name}
+                >
+                  {person.name}{" "}
+                  {person.birth_date ? `(b. ${person.birth_date})` : ""}
                 </MenuItem>
               ))}
             </TextField>
@@ -121,8 +125,12 @@ function RelationsManager() {
               sx={{ minWidth: 200 }}
             >
               {people.map((person) => (
-                <MenuItem key={`${person.name}-${person.birth_date}`} value={person.name}>
-                  {person.name} {person.birth_date ? `(ur. ${person.birth_date})` : ''}
+                <MenuItem
+                  key={`${person.name}-${person.birth_date}`}
+                  value={person.name}
+                >
+                  {person.name}{" "}
+                  {person.birth_date ? `(b. ${person.birth_date})` : ""}
                 </MenuItem>
               ))}
             </TextField>
@@ -142,10 +150,10 @@ function RelationsManager() {
               </Select>
             </FormControl>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               variant="contained"
-              sx={{ minWidth: '200px' }}
+              sx={{ minWidth: "200px" }}
             >
               Add Relation
             </Button>

@@ -123,7 +123,7 @@ function PeopleManager() {
               sx={{ minWidth: "300px" }}
             />
             <TextField
-              label="Data urodzenia"
+              label="Birth date"
               type="date"
               value={newPerson.birth_date}
               onChange={(e) =>
@@ -133,7 +133,7 @@ function PeopleManager() {
               sx={{ width: "400px" }}
             />
             <TextField
-              label="Data śmierci"
+              label="Death date"
               type="date"
               value={newPerson.death_date}
               onChange={(e) =>
@@ -144,16 +144,16 @@ function PeopleManager() {
             />
             <TextField
               select
-              label="Płeć"
+              label="Gender"
               value={newPerson.gender}
               onChange={(e) =>
                 setNewPerson({ ...newPerson, gender: e.target.value })
               }
               sx={{ width: "400px" }}
             >
-              <MenuItem value="M">Mężczyzna</MenuItem>
-              <MenuItem value="K">Kobieta</MenuItem>
-              <MenuItem value="I">Inna</MenuItem>
+              <MenuItem value="M">Male</MenuItem>
+              <MenuItem value="K">Female</MenuItem>
+              <MenuItem value="I">Other</MenuItem>
             </TextField>
             <Button
               type="submit"
@@ -176,11 +176,11 @@ function PeopleManager() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Imię i nazwisko</TableCell>
-              <TableCell>Data urodzenia</TableCell>
-              <TableCell>Data śmierci</TableCell>
-              <TableCell>Płeć</TableCell>
-              <TableCell>Akcje</TableCell>
+              <TableCell>Full name</TableCell>
+              <TableCell>Birth date</TableCell>
+              <TableCell>Death date</TableCell>
+              <TableCell>Gender</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -190,14 +190,15 @@ function PeopleManager() {
                 <TableCell>{person.birth_date || '-'}</TableCell>
                 <TableCell>{person.death_date || '-'}</TableCell>
                 <TableCell>
-                  {person.gender === 'M' ? 'Mężczyzna' : 
-                   person.gender === 'K' ? 'Kobieta' : 
-                   person.gender === 'I' ? 'Inna' : '-'}
+                  {person.gender === 'M' ? 'Male' : 
+                   person.gender === 'K' ? 'Female' : 
+                   person.gender === 'I' ? 'Other' : '-'}
                 </TableCell>
                 <TableCell>
                   <IconButton
                     edge="end"
                     aria-label="delete"
+                    color="error"
                     onClick={() => handleDeletePerson(person)}
                   >
                     <DeleteIcon />
@@ -218,8 +219,8 @@ function PeopleManager() {
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>
-          Relacje: {selectedPerson?.name}
-          {selectedPerson?.birth_date && ` (ur. ${selectedPerson.birth_date})`}
+          Relations: {selectedPerson?.name}
+          {selectedPerson?.birth_date && ` (b. ${selectedPerson.birth_date})`}
         </DialogTitle>
         <DialogContent>
           {Object.keys(relations).length > 0 ? (
@@ -228,7 +229,7 @@ function PeopleManager() {
                 <React.Fragment key={relationType}>
                   <ListItem>
                     <ListItemText
-                      primary={relationType.replace('_', ' ')}
+                      primary={relationType.replace('_', ' ') + ' of:'}
                       secondary={people.join(', ')}
                     />
                   </ListItem>
@@ -236,7 +237,7 @@ function PeopleManager() {
               ))}
             </List>
           ) : (
-            <Typography>Brak relacji dla tej osoby</Typography>
+            <Typography>No relations for this person</Typography>
           )}
         </DialogContent>
       </Dialog>
