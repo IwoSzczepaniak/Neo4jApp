@@ -56,9 +56,9 @@ function PeopleManager() {
       const personData = {
         ...newPerson,
         death_date: newPerson.death_date || null,
-        gender: newPerson.gender || null
+        gender: newPerson.gender || null,
       };
-      
+
       await api.addPerson(personData);
       setNewPerson({
         name: "",
@@ -153,7 +153,6 @@ function PeopleManager() {
             >
               <MenuItem value="M">Male</MenuItem>
               <MenuItem value="K">Female</MenuItem>
-              <MenuItem value="I">Other</MenuItem>
             </TextField>
             <Button
               type="submit"
@@ -187,12 +186,14 @@ function PeopleManager() {
             {people.map((person) => (
               <TableRow key={person.name}>
                 <TableCell>{person.name}</TableCell>
-                <TableCell>{person.birth_date || '-'}</TableCell>
-                <TableCell>{person.death_date || '-'}</TableCell>
+                <TableCell>{person.birth_date || "-"}</TableCell>
+                <TableCell>{person.death_date || "-"}</TableCell>
                 <TableCell>
-                  {person.gender === 'M' ? 'Male' : 
-                   person.gender === 'K' ? 'Female' : 
-                   person.gender === 'I' ? 'Other' : '-'}
+                  {person.gender === "M"
+                    ? "Male"
+                    : person.gender === "K"
+                    ? "Female"
+                    : "-"}
                 </TableCell>
                 <TableCell>
                   <IconButton
@@ -229,8 +230,8 @@ function PeopleManager() {
                 <React.Fragment key={relationType}>
                   <ListItem>
                     <ListItemText
-                      primary={relationType.replace('_', ' ') + ' of:'}
-                      secondary={people.join(', ')}
+                      primary={relationType.replace("_", " ") + " of:"}
+                      secondary={people.join(", ")}
                     />
                   </ListItem>
                 </React.Fragment>
